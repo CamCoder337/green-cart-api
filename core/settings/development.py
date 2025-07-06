@@ -74,26 +74,30 @@ CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=boo
 # DJANGO DEBUG TOOLBAR
 # ==============================================================================
 
-if DEBUG:
-    INSTALLED_APPS += [
-        'debug_toolbar',
-    ]
+# Ajouter debug_toolbar seulement si DEBUG est True
+INSTALLED_APPS += [
+    'debug_toolbar',
+]
 
-    MIDDLEWARE += [
-        'debug_toolbar.middleware.DebugToolbarMiddleware',
-    ]
+# Ajouter le middleware du debug toolbar en première position
+MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+] + MIDDLEWARE
 
-    INTERNAL_IPS = [
-        '127.0.0.1',
-        'localhost',
-    ]
+# IPs autorisées pour le debug toolbar
+INTERNAL_IPS = [
+    '127.0.0.1',
+    'localhost',
+]
 
-    DEBUG_TOOLBAR_CONFIG = {
-        'DISABLE_PANELS': [
-            'debug_toolbar.panels.redirects.RedirectsPanel',
-        ],
-        'SHOW_TEMPLATE_CONTEXT': True,
-    }
+# Configuration du debug toolbar
+DEBUG_TOOLBAR_CONFIG = {
+    'DISABLE_PANELS': [
+        'debug_toolbar.panels.redirects.RedirectsPanel',
+    ],
+    'SHOW_TEMPLATE_CONTEXT': True,
+    'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG,
+}
 
 # ==============================================================================
 # LOGGING CONFIGURATION
