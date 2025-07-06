@@ -7,3 +7,6 @@
 #environnement
 .venv
 .env
+
+#db
+db.sqlite3
