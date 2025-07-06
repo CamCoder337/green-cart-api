@@ -1,0 +1,9 @@
+#editors
+.idea
+
+#ai or generated
+.qodo
+
+#environnement
+.venv
+.env
