@@ -69,7 +69,7 @@ Une boilerplate Django moderne et complète avec les meilleures pratiques pour d
 ### 1. Cloner le projet
 
 ```bash
-git clone https://github.com/votre-username/django-boilerplate.git mon-projet
+git clone https://github.com/camcoder337/django-boilerplate.git mon-projet
 cd mon-projet
 ```
 
