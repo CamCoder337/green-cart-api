@@ -1,6 +1,8 @@
 """
 Settings pour l'environnement de production.
 """
+import logging
+
 from .base import *
 from decouple import config
 
