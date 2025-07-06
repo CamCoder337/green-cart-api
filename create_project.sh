@@ -53,7 +53,7 @@ PROJECT_NAME="$1"
 DATABASE="sqlite"
 CREATE_VENV=true
 INSTALL_DEPS=true
-REPO_URL="https://github.com/votre-username/django-boilerplate.git"
+REPO_URL="https://github.com/camcoder337/django-boilerplate.git"
 
 # Parse additional arguments
 shift

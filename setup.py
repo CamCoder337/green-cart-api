@@ -19,7 +19,7 @@ setup(
     description='CLI tool to create Django projects from a modern boilerplate',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/votre-username/django-boilerplate',
+    url='https://github.com/camcoder337/django-boilerplate',
     packages=find_packages(),
     py_modules=['create_django_project'],
     classifiers=[
@@ -48,8 +48,8 @@ setup(
     },
     keywords='django, boilerplate, cli, project-generator, web-development',
     project_urls={
-        'Bug Reports': 'https://github.com/votre-username/django-boilerplate/issues',
-        'Source': 'https://github.com/votre-username/django-boilerplate',
-        'Documentation': 'https://github.com/votre-username/django-boilerplate#readme',
+        'Bug Reports': 'https://github.com/camcoder337/django-boilerplate/issues',
+        'Source': 'https://github.com/camcoder337/django-boilerplate',
+        'Documentation': 'https://github.com/camcoder337/django-boilerplate#readme',
     },
 )

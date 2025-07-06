@@ -13,7 +13,7 @@ from pathlib import Path
 
 def download_cli():
     """Download the CLI script."""
-    cli_url = "https://raw.githubusercontent.com/votre-username/django-boilerplate/main/create_django_project.py"
+    cli_url = "https://raw.githubusercontent.com/camcoder337/django-boilerplate/main/create_django_project.py"
 
     print("📥 Downloading Django Boilerplate CLI...")
 

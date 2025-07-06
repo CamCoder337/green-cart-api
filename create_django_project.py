@@ -335,7 +335,7 @@ Examples:
 
     parser.add_argument(
         '--repo-url',
-        default='https://github.com/votre-username/django-boilerplate.git',
+        default='https://github.com/camcoder337/django-boilerplate.git',
         help='URL of the boilerplate repository'
     )
 
