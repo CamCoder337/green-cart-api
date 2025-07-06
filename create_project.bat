@@ -15,7 +15,7 @@ if "%1"=="" (
 )
 
 set PROJECT_NAME=%1
-set REPO_URL=https://github.com/votre-username/django-boilerplate.git
+set REPO_URL=https://github.com/camcoder337/django-boilerplate.git
 
 echo.
 echo 🚀 Django Boilerplate Project Creator

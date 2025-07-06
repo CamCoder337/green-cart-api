@@ -65,20 +65,53 @@ def generate_secret_key(length=50):
     return ''.join(secrets.choice(alphabet) for _ in range(length))
 
 
+def get_python_executable():
+    """Get the correct Python executable for the current platform."""
+    # Essayer différentes variantes de Python
+    python_candidates = ['python', 'python3', 'py']
+
+    for candidate in python_candidates:
+        try:
+            # Tester si cette commande fonctionne
+            result = subprocess.run([candidate, '--version'],
+                                    capture_output=True, check=True)
+            # Vérifier que c'est Python 3.9+
+            version_output = result.stdout.decode().strip()
+            if 'Python 3.' in version_output:
+                version_parts = version_output.split()[1].split('.')
+                major, minor = int(version_parts[0]), int(version_parts[1])
+                if major >= 3 and minor >= 9:
+                    return candidate
+        except (subprocess.CalledProcessError, FileNotFoundError, IndexError):
+            continue
+
+    return None
+
+
 def check_python_version():
     """Check if Python version is compatible."""
-    version = sys.version_info
-    if version.major < 3 or (version.major == 3 and version.minor < 9):
-        print_error("Python 3.9+ is required. Please upgrade your Python version.")
-        return False
-    return True
+    python_exe = get_python_executable()
+    if not python_exe:
+        print_error("Python 3.9+ is required but not found. Please install Python 3.9 or higher.")
+        print_info("On Windows, you can install Python from: https://python.org/downloads/")
+        return False, None
+
+    try:
+        result = subprocess.run([python_exe, '--version'],
+                                capture_output=True, check=True)
+        version_output = result.stdout.decode().strip()
+        print_success(f"Found {version_output}")
+        return True, python_exe
+    except Exception:
+        print_error("Could not determine Python version")
+        return False, None
 
 
 def check_git_installed():
     """Check if Git is installed."""
     try:
         subprocess.run(['git', '--version'],
-                      capture_output=True, check=True)
+                       capture_output=True, check=True)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         print_error("Git is not installed. Please install Git first.")
@@ -87,12 +120,31 @@ def check_git_installed():
 
 def clone_repository(repo_url, project_name, branch='main'):
     """Clone the boilerplate repository."""
+    # Pour test local, essayer différentes branches
+    branches_to_try = [branch, 'master', 'develop']
+
+    for try_branch in branches_to_try:
+        try:
+            print_info(f"Cloning from {repo_url} (branch: {try_branch})")
+            subprocess.run([
+                'git', 'clone',
+                '--branch', try_branch,
+                '--single-branch',
+                '--depth', '1',
+                repo_url,
+                project_name
+            ], check=True)
+            print_success(f"Repository cloned successfully from branch '{try_branch}'!")
+            return True
+        except subprocess.CalledProcessError as e:
+            print_warning(f"Branch '{try_branch}' not found, trying next...")
+            continue
+
+    # Si aucune branche ne fonctionne, essayer un clone normal
     try:
-        print_info(f"Cloning from {repo_url}")
+        print_info(f"Trying default clone from {repo_url}")
         subprocess.run([
             'git', 'clone',
-            '--branch', branch,
-            '--single-branch',
             '--depth', '1',
             repo_url,
             project_name
@@ -156,19 +208,32 @@ def clean_git_history(project_path):
         return False
 
 
-def create_virtual_environment(project_path, python_version='python3'):
+def create_virtual_environment(project_path, python_executable='python'):
     """Create Python virtual environment."""
     venv_path = project_path / 'venv'
 
     try:
-        print_info(f"Creating virtual environment with {python_version}")
+        print_info(f"Creating virtual environment with {python_executable}")
         subprocess.run([
-            python_version, '-m', 'venv', str(venv_path)
+            python_executable, '-m', 'venv', str(venv_path)
         ], check=True)
         print_success(f"Virtual environment created at {venv_path}")
         return True
     except subprocess.CalledProcessError as e:
         print_error(f"Failed to create virtual environment: {e}")
+        print_info("Trying alternative method...")
+
+        # Essayer avec py -m venv sur Windows
+        if os.name == 'nt':
+            try:
+                subprocess.run([
+                    'py', '-m', 'venv', str(venv_path)
+                ], check=True)
+                print_success(f"Virtual environment created at {venv_path}")
+                return True
+            except subprocess.CalledProcessError:
+                pass
+
         return False
 
 
@@ -280,9 +345,9 @@ def create_project_info(project_path, project_name, settings):
 
 def print_success_message(project_name, project_path, settings):
     """Print final success message with instructions."""
-    print_colored("\n" + "="*60, Colors.GREEN)
+    print_colored("\n" + "=" * 60, Colors.GREEN)
     print_colored(f"🎉 PROJECT '{project_name.upper()}' CREATED SUCCESSFULLY!", Colors.GREEN + Colors.BOLD)
-    print_colored("="*60, Colors.GREEN)
+    print_colored("=" * 60, Colors.GREEN)
 
     print_colored(f"\n📁 Project Location: {project_path}", Colors.BLUE)
 
@@ -335,7 +400,7 @@ Examples:
 
     parser.add_argument(
         '--repo-url',
-        default='https://github.com/votre-username/django-boilerplate.git',
+        default='https://github.com/camcoder337/django-boilerplate.git',
         help='URL of the boilerplate repository'
     )
 
@@ -377,9 +442,9 @@ Examples:
     )
 
     parser.add_argument(
-        '--no-git',
+        '--local-copy',
         action='store_true',
-        help='Skip Git repository initialization'
+        help='Copy files from current directory instead of cloning (for testing)'
     )
 
     args = parser.parse_args()
@@ -408,12 +473,12 @@ Examples:
 
     # Print header
     print_colored("\n🚀 DJANGO BOILERPLATE PROJECT CREATOR", Colors.HEADER + Colors.BOLD)
-    print_colored("="*50, Colors.HEADER)
+    print_colored("=" * 50, Colors.HEADER)
     print_colored(f"Project: {project_name}", Colors.BLUE)
     print_colored(f"Location: {project_path}", Colors.BLUE)
     print_colored(f"Repository: {args.repo_url}", Colors.BLUE)
     print_colored(f"Database: {args.database}", Colors.BLUE)
-    print_colored("="*50, Colors.HEADER)
+    print_colored("=" * 50, Colors.HEADER)
 
     total_steps = 8
     current_step = 0
@@ -422,7 +487,8 @@ Examples:
     current_step += 1
     print_step(current_step, total_steps, "Checking system requirements")
 
-    if not check_python_version():
+    python_ok, python_executable = check_python_version()
+    if not python_ok:
         sys.exit(1)
 
     if not args.no_git and not check_git_installed():
@@ -430,12 +496,36 @@ Examples:
 
     print_success("System requirements check passed")
 
-    # Step 2: Clone repository
+    # Step 2: Clone repository or copy local files
     current_step += 1
-    print_step(current_step, total_steps, "Cloning boilerplate repository")
+    if args.local_copy:
+        print_step(current_step, total_steps, "Copying files from current directory")
 
-    if not clone_repository(args.repo_url, project_name, args.branch):
-        sys.exit(1)
+        try:
+            import shutil
+
+            # Copier tous les fichiers sauf certains dossiers
+            exclude_dirs = {'.git', '__pycache__', 'venv', '.pytest_cache', 'htmlcov'}
+            exclude_files = {'db.sqlite3', '.env'}
+
+            project_path.mkdir()
+
+            for item in Path('.').iterdir():
+                if item.name not in exclude_dirs and item.name not in exclude_files:
+                    if item.is_dir():
+                        shutil.copytree(item, project_path / item.name)
+                    else:
+                        shutil.copy2(item, project_path / item.name)
+
+            print_success("Files copied successfully!")
+        except Exception as e:
+            print_error(f"Failed to copy files: {e}")
+            sys.exit(1)
+    else:
+        print_step(current_step, total_steps, "Cloning boilerplate repository")
+
+        if not clone_repository(args.repo_url, project_name, args.branch):
+            sys.exit(1)
 
     # Step 3: Setup environment configuration
     current_step += 1
@@ -455,7 +545,7 @@ Examples:
     print_step(current_step, total_steps, "Creating virtual environment")
 
     if not args.no_venv:
-        if not create_virtual_environment(project_path, args.python_version):
+        if not create_virtual_environment(project_path, python_executable):
             sys.exit(1)
     else:
         print_info("Skipping virtual environment creation")
@@ -491,7 +581,7 @@ Examples:
         try:
             subprocess.run(['git', 'add', '.'], cwd=project_path, check=True)
             subprocess.run(['git', 'commit', '-m', 'Initial commit from Django Boilerplate'],
-                         cwd=project_path, check=True)
+                           cwd=project_path, check=True)
             print_success("Initial Git commit created")
         except subprocess.CalledProcessError:
             print_warning("Could not create initial Git commit")
