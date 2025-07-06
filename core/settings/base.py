@@ -173,7 +173,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # AUTHENTICATION & AUTHORIZATION
 # ==============================================================================
 # Custom User Model (décommentez quand vous créerez le modèle User)
-# AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 # Login/Logout URLs
 LOGIN_URL = '/admin/login/'
