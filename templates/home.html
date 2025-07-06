@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Django Boilerplate 🚀</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        .emoji {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .feature h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+        }
+        .feature p {
+            margin: 0;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        .status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <span class="emoji">🚀</span>
+        <h1>Django Boilerplate</h1>
+        <p>Votre projet Django est configuré et prêt à être développé !</p>
+
+        <div class="features">
+            <div class="feature">
+                <h3>⚙️ Settings Modulaires</h3>
+                <p>Configurations séparées pour dev, test et prod</p>
+            </div>
+            <div class="feature">
+                <h3>🔐 REST API</h3>
+                <p>Django REST Framework configuré</p>
+            </div>
+            <div class="feature">
+                <h3>🗄️ Base de données</h3>
+                <p>SQLite en dev, PostgreSQL en prod</p>
+            </div>
+            <div class="feature">
+                <h3>🌐 CORS</h3>
+                <p>Configuré pour les frontends modernes</p>
+            </div>
+            <div class="feature">
+                <h3>🔧 Debug Toolbar</h3>
+                <p>Outils de développement intégrés</p>
+            </div>
+            <div class="feature">
+                <h3>📦 Cache Redis</h3>
+                <p>Configuration de cache avancée</p>
+            </div>
+        </div>
+
+        <div class="links">
+            <a href="/admin/" class="btn">🛠️ Administration</a>
+            <a href="/__debug__/" class="btn">🐛 Debug Toolbar</a>
+        </div>
+
+        <div class="status">
+            ✅ Django {{ version }} • Mode: {% if debug %}Développement{% else %}Production{% endif %}
+        </div>
+    </div>
+</body>
+</html>
