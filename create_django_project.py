@@ -447,6 +447,12 @@ Examples:
         help='Copy files from current directory instead of cloning (for testing)'
     )
 
+    parser.add_argument(
+        '--no-git',
+        action='store_true',
+        help='Skip Git repository initialization'
+    )
+
     args = parser.parse_args()
 
     # Validate project name
