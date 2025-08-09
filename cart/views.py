@@ -6,7 +6,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
-from drf_spectacular.openapi import OpenApiTypes
+from drf_spectacular.openapi import OpenApiTypes, OpenApiResponse
 
 from .models import Cart, CartItem
 from .serializers import (
@@ -111,6 +111,25 @@ def add_to_cart(request):
     )
 
 
+@extend_schema(
+    summary="Update cart item",
+    description="Update the quantity of a cart item. Set quantity to 0 to remove item.",
+    request=UpdateCartItemSerializer,
+    responses={
+        200: OpenApiResponse(
+            description="Cart item updated successfully",
+            response={
+                'type': 'object',
+                'properties': {
+                    'message': {'type': 'string'},
+                    'cart_item': CartItemSerializer
+                }
+            }
+        ),
+        404: OpenApiResponse(description="Cart or item not found"),
+        400: OpenApiResponse(description="Validation error")
+    }
+)
 @api_view(['PUT', 'PATCH'])
 @permission_classes([permissions.IsAuthenticated])
 def update_cart_item(request, item_id):
@@ -147,6 +166,22 @@ def update_cart_item(request, item_id):
     )
 
 
+@extend_schema(
+    summary="Remove item from cart",
+    description="Remove a specific item from the cart",
+    responses={
+        200: OpenApiResponse(
+            description="Item removed successfully",
+            response={
+                'type': 'object', 
+                'properties': {
+                    'message': {'type': 'string'}
+                }
+            }
+        ),
+        404: OpenApiResponse(description="Cart or item not found")
+    }
+)
 @api_view(['DELETE'])
 @permission_classes([permissions.IsAuthenticated])
 def remove_from_cart(request, item_id):
@@ -165,6 +200,25 @@ def remove_from_cart(request, item_id):
         )
 
 
+@extend_schema(
+    summary="Add product to cart",
+    description="Add a specific product to the cart by product ID",
+    request=AddToCartSerializer,
+    responses={
+        200: OpenApiResponse(
+            description="Product added to cart successfully",
+            response={
+                'type': 'object',
+                'properties': {
+                    'message': {'type': 'string'},
+                    'cart_item': CartItemSerializer
+                }
+            }
+        ),
+        404: OpenApiResponse(description="Product not found"),
+        400: OpenApiResponse(description="Validation error")
+    }
+)
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def add_product_to_cart(request, product_id):

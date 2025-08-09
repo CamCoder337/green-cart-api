@@ -4,6 +4,7 @@ Serializers for orders management in GreenCart.
 from rest_framework import serializers
 from django.utils import timezone
 from django.db import transaction
+from drf_spectacular.utils import extend_schema_field
 from .models import Order, OrderItem, OrderStatusHistory
 from products.serializers import ProductListSerializer
 from accounts.serializers import ProducerSerializer
@@ -84,6 +85,7 @@ class OrderListSerializer(serializers.ModelSerializer):
             'order_date', 'delivery_date', 'consumer_notes'
         ]
     
+    @extend_schema_field(serializers.IntegerField)
     def get_producers_count(self, obj):
         """Count number of producers involved in this order."""
         return obj.producers_involved.count()

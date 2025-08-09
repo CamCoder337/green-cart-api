@@ -8,7 +8,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
-from drf_spectacular.openapi import OpenApiTypes
+from drf_spectacular.openapi import OpenApiTypes, OpenApiResponse
 
 from .models import Order, OrderItem, OrderStatusHistory
 from .serializers import (
@@ -212,6 +212,22 @@ def my_orders(request):
     return Response(serializer.data)
 
 
+@extend_schema(
+    summary="Get producer orders",
+    description="Get orders containing products from the current producer",
+    parameters=[
+        OpenApiParameter(
+            name='status',
+            type=str,
+            location=OpenApiParameter.QUERY,
+            description='Filter orders by status'
+        )
+    ],
+    responses={
+        200: OrderListSerializer(many=True),
+        403: OpenApiResponse(description="Only producers can access this endpoint")
+    }
+)
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def producer_orders(request):
@@ -236,6 +252,15 @@ def producer_orders(request):
     return Response(serializer.data)
 
 
+@extend_schema(
+    summary="Get order details",
+    description="Get detailed information about a specific order. Consumers can see their own orders, producers can see orders containing their products, staff can see all orders.",
+    responses={
+        200: OrderSerializer,
+        404: OpenApiResponse(description="Order not found"),
+        403: OpenApiResponse(description="Permission denied")
+    }
+)
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def order_detail(request, order_id):

@@ -3,6 +3,7 @@ Serializers for products management in GreenCart.
 """
 from rest_framework import serializers
 from django.utils import timezone
+from drf_spectacular.utils import extend_schema_field
 from .models import Category, Product, ProductImage
 from accounts.serializers import ProducerSerializer
 
@@ -20,6 +21,7 @@ class CategorySerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'slug', 'created_at', 'updated_at']
     
+    @extend_schema_field(serializers.IntegerField)
     def get_products_count(self, obj):
         """Count active products in this category."""
         return obj.products.filter(is_active=True).count()
@@ -62,6 +64,7 @@ class ProductSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'producer', 'created_at', 'updated_at']
     
+    @extend_schema_field(serializers.BooleanField)
     def get_is_expiring_soon(self, obj):
         """Check if product expires soon."""
         return obj.is_expiring_soon
@@ -116,6 +119,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             'category_name', 'category_icon', 'created_at'
         ]
     
+    @extend_schema_field(serializers.BooleanField)
     def get_is_expiring_soon(self, obj):
         """Check if product expires soon."""
         return obj.is_expiring_soon

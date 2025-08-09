@@ -9,9 +9,33 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from drf_spectacular.utils import extend_schema
+from drf_spectacular.openapi import OpenApiResponse
 import django
 
 
+@extend_schema(
+    summary="API Root",
+    description="Get API information and available endpoints",
+    responses={
+        200: OpenApiResponse(
+            description="API information",
+            response={
+                'type': 'object',
+                'properties': {
+                    'message': {'type': 'string'},
+                    'version': {'type': 'string'},
+                    'description': {'type': 'string'},
+                    'django_version': {'type': 'string'},
+                    'debug_mode': {'type': 'boolean'},
+                    'available_endpoints': {'type': 'object'},
+                    'authentication': {'type': 'object'},
+                    'status': {'type': 'string'}
+                }
+            }
+        )
+    }
+)
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def api_root(request):

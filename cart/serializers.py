@@ -2,6 +2,7 @@
 Serializers for cart management in GreenCart.
 """
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 from .models import Cart, CartItem
 from products.serializers import ProductListSerializer
 
@@ -24,6 +25,7 @@ class CartItemSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'cart', 'price_at_time', 'created_at', 'updated_at']
     
+    @extend_schema_field(serializers.BooleanField)
     def get_is_available(self, obj):
         """Check if product is still available in requested quantity."""
         return obj.is_available()
