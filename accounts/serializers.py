@@ -5,7 +5,27 @@ from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from .models import User
+from drf_spectacular.utils import extend_schema_field
+from .models import User, Producer
+
+
+class ProducerSerializer(serializers.ModelSerializer):
+    """Serializer for Producer model."""
+    
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    user_name = serializers.CharField(source='user.full_name', read_only=True)
+    full_address = serializers.CharField(read_only=True)
+    
+    class Meta:
+        model = Producer
+        fields = [
+            'id', 'user', 'user_email', 'user_name',
+            'business_name', 'description', 'siret',
+            'address', 'city', 'postal_code', 'region',
+            'full_address', 'is_verified',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'user', 'is_verified', 'created_at', 'updated_at']
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -21,11 +41,15 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         style={'input_type': 'password'}
     )
 
+    # Optional producer data for producer registration
+    producer_data = ProducerSerializer(required=False, write_only=True)
+
     class Meta:
         model = User
         fields = (
             'email', 'username', 'password', 'password_confirm',
-            'first_name', 'last_name', 'phone_number'
+            'first_name', 'last_name', 'phone_number', 'user_type',
+            'producer_data'
         )
         extra_kwargs = {
             'email': {'required': True},
@@ -62,15 +86,29 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
                 'password': list(e.messages)
             })
 
+        # Validate producer data if user type is PRODUCER
+        if attrs.get('user_type') == 'PRODUCER':
+            if not attrs.get('producer_data'):
+                raise serializers.ValidationError({
+                    'producer_data': 'Producer information is required for producer accounts.'
+                })
+
         return attrs
 
     def create(self, validated_data):
         """Create a new user."""
         password = validated_data.pop('password')
+        producer_data = validated_data.pop('producer_data', None)
+        
         user = User.objects.create_user(
             password=password,
             **validated_data
         )
+        
+        # Create producer profile if needed
+        if user.user_type == 'PRODUCER' and producer_data:
+            Producer.objects.create(user=user, **producer_data)
+        
         return user
 
 
@@ -136,26 +174,45 @@ def validate_phone_number(value):
 class UserProfileSerializer(serializers.ModelSerializer):
     """Serializer for user profile (read/update)."""
 
-    full_name = serializers.ReadOnlyField()
-    avatar_url = serializers.ReadOnlyField()
+    @extend_schema_field(serializers.CharField)
+    def get_full_name(self, obj) -> str:
+        return obj.full_name
+    
+    full_name = serializers.SerializerMethodField()
+    
+    @extend_schema_field(serializers.URLField)
+    def get_avatar_url(self, obj) -> str:
+        return obj.avatar_url
+    
+    avatar_url = serializers.SerializerMethodField()
+    producer_profile = ProducerSerializer(read_only=True)
 
     class Meta:
         model = User
         fields = (
             'id', 'email', 'username', 'first_name', 'last_name',
-            'phone_number', 'avatar', 'avatar_url', 'full_name',
-            'is_verified', 'date_joined', 'last_login'
+            'phone_number', 'user_type', 'avatar', 'avatar_url', 'full_name',
+            'is_verified', 'date_joined', 'last_login', 'producer_profile'
         )
         read_only_fields = (
-            'id', 'email', 'is_verified', 'date_joined', 'last_login'
+            'id', 'email', 'user_type', 'is_verified', 'date_joined', 'last_login'
         )
 
 
 class UserListSerializer(serializers.ModelSerializer):
     """Serializer for user list (minimal data)."""
 
-    full_name = serializers.ReadOnlyField()
-    avatar_url = serializers.ReadOnlyField()
+    @extend_schema_field(serializers.CharField)
+    def get_full_name(self, obj) -> str:
+        return obj.full_name
+    
+    full_name = serializers.SerializerMethodField()
+    
+    @extend_schema_field(serializers.URLField)
+    def get_avatar_url(self, obj) -> str:
+        return obj.avatar_url
+    
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = User

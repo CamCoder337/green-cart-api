@@ -1,76 +1,83 @@
-# 🚀 Django Boilerplate
+# 🌱 GreenCart API
 
-Une boilerplate Django moderne et complète avec les meilleures pratiques pour démarrer rapidement vos projets web.
+API REST pour une plateforme de circuit court connectant producteurs locaux et consommateurs écoresponsables.
 
 [![Python](https://img.shields.io/badge/Python-3.13+-blue.svg)](https://python.org)
-[![Django](https://img.shields.io/badge/Django-5.0+-green.svg)](https://djangoproject.com)
+[![Django](https://img.shields.io/badge/Django-5.2+-green.svg)](https://djangoproject.com)
+[![DRF](https://img.shields.io/badge/Django%20REST-3.16+-red.svg)](https://www.django-rest-framework.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ## 📋 Table des matières
 
-- [Fonctionnalités](#-fonctionnalités)
-- [Prérequis](#-prérequis)
+- [Vue d'ensemble](#-vue-densemble)
+- [Fonctionnalités MVP](#-fonctionnalités-mvp)
+- [API Endpoints](#-api-endpoints)
 - [Installation rapide](#-installation-rapide)
 - [Structure du projet](#-structure-du-projet)
 - [Configuration](#️-configuration)
 - [Utilisation](#-utilisation)
 - [Développement](#-développement)
-- [Déploiement](#-déploiement)
 - [Tests](#-tests)
+- [Déploiement](#-déploiement)
 - [Contribution](#-contribution)
-- [License](#-license)
 
-## ✨ Fonctionnalités
+## 🌱 Vue d'ensemble
 
-### 🏗️ Architecture
-- **Django 5.0+** avec Python 3.13+
-- **Settings modulaires** (development, production, testing)
-- **Structure organisée** avec apps séparées
-- **Variables d'environnement** pour la configuration
+GreenCart est une plateforme de circuit court qui révolutionne la façon dont les producteurs locaux et les consommateurs écoresponsables interagissent. Notre API REST facilite les échanges directs, réduisant les intermédiaires et favorisant une économie locale durable.
 
-### 🔐 API & Authentification
-- **Django REST Framework** configuré
-- **Authentification par token**
-- **CORS** configuré pour les frontends modernes
-- **Pagination** et **filtrage** automatiques
+**Mission** : Connecter les producteurs locaux aux consommateurs soucieux de l'environnement pour créer un écosystème alimentaire plus durable et transparent.
 
-### 🗄️ Base de données
-- **SQLite** pour le développement
-- **PostgreSQL** prêt pour la production
-- **Migrations** automatisées
+## ✨ Fonctionnalités MVP
 
-### ⚡ Performance & Cache
-- **Redis** configuré pour le cache
-- **WhiteNoise** pour les fichiers statiques
-- **Celery** prêt pour les tâches asynchrones
+### 🔐 Système d'authentification
+- Inscription/connexion pour consommateurs et producteurs
+- Authentification par token JWT
+- Gestion des profils utilisateur
+- Système de rôles (consommateur/producteur)
 
-### 🛠️ Outils de développement
-- **Django Debug Toolbar** intégré
-- **Pre-commit hooks** configurés
-- **Tests** avec pytest
-- **Code formatting** avec Black et isort
+### 🥕 Gestion des produits (Producteurs)
+- Créer un produit (nom, description, prix, quantité, DLC, catégorie)
+- Modifier et supprimer ses produits
+- Gestion des stocks en temps réel
+- Upload de photos produits
 
-### 📦 Production Ready
-- **Gunicorn** configuré
-- **Logging** avancé
-- **Monitoring** avec Sentry (optionnel)
-- **Security settings** optimisés
+### 🛒 Catalogue et commandes (Consommateurs)
+- Catalogue avec filtres (catégorie, région, DLC)
+- Détail produit avec informations producteur
+- Panier d'achat dynamique
+- Gestion des quantités et suppression
+- Commandes simplifiées (sans paiement en ligne)
+
+### 📦 Gestion des commandes (Producteurs)
+- Visualisation des commandes reçues
+- Acceptation/refus des commandes
+- Suivi des statuts (en attente, confirmée, expédiée, livrée)
+- Notifications en temps réel
+
+### 🏗️ Architecture technique
+- **Backend** : Django 5.2+ avec Python 3.13+
+- **API** : Django REST Framework 3.16+
+- **Base de données** : PostgreSQL (SQLite en développement)
+- **Authentification** : Token-based avec DRF
+- **Cache** : Redis pour les performances
+- **Fichiers** : Upload et gestion des médias
 
 ## 🔧 Prérequis
 
 - **Python 3.13+**
 - **Git**
-- **PostgreSQL** (optionnel, pour la production)
-- **Redis** (optionnel, pour le cache)
+- **PostgreSQL** (recommandé pour la production)
+- **Redis** (pour le cache et les sessions)
+- **Node.js** (optionnel, pour le frontend React)
 
 ## 🚀 Installation rapide
 
 ### 1. Cloner le projet
 
 ```bash
-git clone https://github.com/camcoder337/django-boilerplate.git mon-projet
-cd mon-projet
+git clone <repository-url> greencart-api
+cd greencart-api
 ```
 
 ### 2. Configurer l'environnement
@@ -95,15 +102,18 @@ pip install -r requirements-dev.txt
 # Copier le fichier d'environnement
 cp .env.example .env
 
+# Éditer .env avec vos configurations
 # Générer une nouvelle clé secrète (optionnel)
 python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-# Copier la clé générée dans .env
 
 # Créer la base de données
 python manage.py migrate
 
 # Créer un superutilisateur
 python manage.py createsuperuser
+
+# Créer des données de test (optionnel)
+python manage.py seed
 ```
 
 ### 4. Lancer le serveur
@@ -112,15 +122,67 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-🎉 **Votre projet est prêt !**
-- **Interface** : http://127.0.0.1:8000/
+🎉 **GreenCart API est prête !**
 - **API** : http://127.0.0.1:8000/api/
 - **Admin** : http://127.0.0.1:8000/admin/
+- **Documentation API** : http://127.0.0.1:8000/api/docs/ (prochainement)
+
+## 📡 API Endpoints
+
+### Authentification
+```
+POST /api/auth/register/          # Inscription utilisateur
+POST /api/auth/login/             # Connexion
+POST /api/auth/logout/            # Déconnexion
+GET  /api/auth/profile/           # Profil utilisateur
+PUT  /api/auth/profile/           # Mise à jour profil
+```
+
+### Produits
+```
+GET    /api/products/             # Catalogue public avec filtres
+GET    /api/products/{id}/        # Détail produit
+POST   /api/products/             # Créer produit (producteur)
+PUT    /api/products/{id}/        # Modifier produit (producteur)
+DELETE /api/products/{id}/        # Supprimer produit (producteur)
+GET    /api/producer/products/    # Mes produits (producteur)
+```
+
+### Catégories
+```
+GET /api/categories/              # Liste des catégories
+```
+
+### Panier
+```
+GET    /api/cart/                 # Mon panier
+POST   /api/cart/items/           # Ajouter au panier
+PUT    /api/cart/items/{id}/      # Modifier quantité
+DELETE /api/cart/items/{id}/      # Supprimer du panier
+DELETE /api/cart/clear/           # Vider le panier
+```
+
+### Commandes
+```
+POST /api/orders/                 # Passer commande depuis le panier
+GET  /api/orders/                 # Mes commandes (consommateur)
+GET  /api/orders/{id}/            # Détail commande
+PUT  /api/orders/{id}/cancel/     # Annuler commande (consommateur)
+
+# Pour les producteurs
+GET /api/producer/orders/         # Commandes reçues
+PUT /api/producer/orders/{id}/    # Changer statut commande
+```
+
+### Régions
+```
+GET /api/regions/                 # Liste des régions françaises
+```
 
 ## 📁 Structure du projet
 
 ```
-mon-projet/
+greencart-api/
 ├── 📁 core/                    # Configuration principale
 │   ├── 📁 settings/           # Settings modulaires
 │   │   ├── base.py           # Configuration de base
@@ -130,16 +192,21 @@ mon-projet/
 │   ├── urls.py               # URLs principales
 │   ├── wsgi.py               # Configuration WSGI
 │   └── asgi.py               # Configuration ASGI
-├── 📁 accounts/               # Gestion des utilisateurs
-├── 📁 api/                    # API REST
+├── 📁 accounts/               # Gestion des utilisateurs et authentification
+├── 📁 api/                    # API REST et endpoints génériques
+├── 📁 products/               # Gestion des produits (à développer)
+├── 📁 orders/                 # Gestion des commandes (à développer)
+├── 📁 cart/                   # Gestion du panier (à développer)
 ├── 📁 static/                 # Fichiers statiques
-├── 📁 media/                  # Fichiers média
-├── 📁 templates/              # Templates HTML
-├── 📁 logs/                   # Logs de l'application
+├── 📁 media/                  # Fichiers média (photos produits)
+├── 📁 templates/              # Templates HTML (optionnel)
 ├── 📄 requirements.txt        # Dépendances production
 ├── 📄 requirements-dev.txt    # Dépendances développement
 ├── 📄 .env.example           # Exemple de configuration
 ├── 📄 manage.py              # Script de gestion Django
+├── 📄 Makefile               # Commandes développement
+├── 📄 docker-compose.yml     # Configuration Docker
+├── 📄 CLAUDE.md              # Guide pour Claude Code
 └── 📄 README.md              # Cette documentation
 ```
 
@@ -157,14 +224,30 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 
 # Base de données
 DATABASE_URL=sqlite:///db.sqlite3
+# Pour PostgreSQL: postgresql://user:password@localhost:5432/greencart
+
+# CORS pour le frontend React
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+
+# API Settings
+DRF_PAGE_SIZE=20
+
+# Cache Redis
+REDIS_URL=redis://127.0.0.1:6379/1
+CACHE_BACKEND=django_redis.cache.RedisCache
 
 # Email (optionnel)
 EMAIL_HOST=smtp.gmail.com
 EMAIL_HOST_USER=votre-email@gmail.com
 EMAIL_HOST_PASSWORD=votre-mot-de-passe-app
 
-# Cache Redis (optionnel)
-REDIS_URL=redis://127.0.0.1:6379/1
+# Logging
+LOG_LEVEL=INFO
+DJANGO_LOG_LEVEL=INFO
+
+# Sécurité (production)
+SESSION_COOKIE_SECURE=False  # True en production HTTPS
+CSRF_COOKIE_SECURE=False     # True en production HTTPS
 ```
 
 ### Environnements de configuration
@@ -182,7 +265,21 @@ DJANGO_SETTINGS_MODULE=core.settings.testing python manage.py test
 
 ## 📖 Utilisation
 
-### Créer une nouvelle app
+### Modèles de données GreenCart
+
+#### User (accounts/models.py)
+- Modèle utilisateur personnalisé avec email comme identifiant
+- Support pour producteurs et consommateurs
+- Champs : email, nom, téléphone, adresse, région
+
+#### Futurs modèles à implémenter :
+- **Product** : nom, description, prix, quantité, DLC, catégorie
+- **Category** : catégories de produits
+- **Cart/CartItem** : panier d'achat utilisateur
+- **Order/OrderItem** : commandes et articles
+- **Producer** : profil producteur
+
+### Créer une nouvelle app Django
 
 ```bash
 # Créer l'app
@@ -196,23 +293,49 @@ LOCAL_APPS = [
 ]
 ```
 
-### Travailler avec l'API
+### Authentification API
 
 ```python
-# Dans votre app/serializers.py
-from rest_framework import serializers
+# Obtenir un token d'authentification
+POST /api/auth/login/
+{
+    "email": "user@example.com",
+    "password": "motdepasse"
+}
 
-class MonSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MonModel
-        fields = '__all__'
+# Réponse
+{
+    "token": "your-auth-token",
+    "user": {
+        "id": 1,
+        "email": "user@example.com",
+        "user_type": "CONSUMER"
+    }
+}
 
-# Dans votre app/views.py
-from rest_framework import viewsets
+# Utiliser le token dans les requêtes
+headers: {
+    "Authorization": "Token your-auth-token"
+}
+```
 
-class MonViewSet(viewsets.ModelViewSet):
-    queryset = MonModel.objects.all()
-    serializer_class = MonSerializer
+### Filtres disponibles
+
+```
+# Produits par catégorie
+GET /api/products/?category=legumes
+
+# Produits par région du producteur
+GET /api/products/?region=ile-de-france
+
+# Produits exprirant bientôt
+GET /api/products/?expires_in_days=3
+
+# Recherche par nom
+GET /api/products/?search=tomate
+
+# Combinaisons
+GET /api/products/?category=fruits&region=bretagne&search=pomme
 ```
 
 ### Base de données
@@ -335,6 +458,50 @@ class TestMonAPI(APITestCase):
         pass
 ```
 
+## 🎯 Règles métier GreenCart
+
+### Gestion des stocks
+- **Décrémentation automatique** : La quantité disponible est décrémenter automatiquement lors d'une commande confirmée
+- **Contrôle des stocks** : Empêcher les commandes si quantité insuffisante
+- **Réincrémentation** : Si une commande est annulée, remettre les quantités en stock
+
+### Système de commandes
+- Une **commande peut contenir des produits de plusieurs producteurs**
+- Chaque **producteur gère ses propres items** dans la commande
+- Le **statut global** de la commande dépend du statut de tous les items
+- **Statuts possibles** : PENDING, CONFIRMED, CANCELLED, SHIPPED, DELIVERED
+
+### Filtres et recherche
+- **Par catégorie** : fruits, légumes, produits laitiers, etc.
+- **Par région** : région du producteur pour favoriser la proximité
+- **Par DLC** : produits périssant dans X jours pour éviter le gaspillage
+- **Disponibilité** : uniquement les produits en stock
+
+### Authentification et autorisations
+- **Consommateurs** : peuvent naviguer, acheter, gérer leur panier et commandes
+- **Producteurs** : peuvent gérer leurs produits, voir et traiter leurs commandes
+- **Token-based** : Authentification sécurisée pour l'API REST
+
+## 🚀 Prochaines étapes après MVP
+
+### Phase 2 - Améliorations
+- [ ] **Intégration paiement** (Stripe/PayPal)
+- [ ] **Système de notifications** (email, SMS)
+- [ ] **Géolocalisation avancée** avec calcul de distances
+- [ ] **Reviews et ratings** des produits et producteurs
+
+### Phase 3 - Fonctionnalités avancées
+- [ ] **Tableau de bord analytics** pour les producteurs
+- [ ] **Système de livraison** avec tracking
+- [ ] **Programme de fidélité**
+- [ ] **Application mobile** (React Native)
+
+### Phase 4 - Scalabilité
+- [ ] **Microservices architecture**
+- [ ] **Cache Redis avancé**
+- [ ] **CDN pour les images**
+- [ ] **API GraphQL**
+
 ## 📚 Ressources utiles
 
 ### Documentation
@@ -401,20 +568,24 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 
 Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
-## 👨‍💻 Auteur
+## 👨‍💻 Équipe GreenCart
 
-**Camcoder337** - [@camcoder337](https://github.com/camcoder337)
+**Développeur Backend** - [@camcoder337](https://github.com/camcoder337)
 
 ---
 
-⭐ **N'hésitez pas à donner une étoile si ce projet vous a aidé !**
+⭐ **Rejoignez la révolution du circuit court avec GreenCart !**
 
 ## 🔗 Liens utiles
 
-- [Signaler un bug](https://github.com/votre-username/django-boilerplate/issues)
-- [Demander une fonctionnalité](https://github.com/votre-username/django-boilerplate/issues)
-- [Documentation complète](https://github.com/votre-username/django-boilerplate/wiki)
+- [Signaler un bug](https://github.com/camcoder337/greencart-api/issues)
+- [Demander une fonctionnalité](https://github.com/camcoder337/greencart-api/issues)
+- [Documentation API](https://github.com/camcoder337/greencart-api/wiki)
+
+## 🌍 Mission
+
+GreenCart s'engage à créer un écosystème alimentaire plus durable en connectant directement producteurs locaux et consommateurs écoresponsables. Ensemble, réduisons l'empreinte carbone de notre alimentation !
 
 ---
 
-*Made with ❤️ and Django*
+*Made with 🌱 for a sustainable future*

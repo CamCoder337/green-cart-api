@@ -13,7 +13,20 @@ class User(AbstractUser):
     Uses email as the main identifier instead of username.
     """
 
+    # Choix pour les types d'utilisateurs
+    USER_TYPE_CHOICES = [
+        ('CONSUMER', 'Consommateur'),
+        ('PRODUCER', 'Producteur'),
+    ]
+
     # Basic fields
+    user_type = models.CharField(
+        'Type d\'utilisateur',
+        max_length=20,
+        choices=USER_TYPE_CHOICES,
+        default='CONSUMER',
+        help_text='Type de compte utilisateur'
+    )
     email = models.EmailField(
         'Email Address',
         unique=True,
@@ -107,7 +120,8 @@ class User(AbstractUser):
         """Returns the avatar URL or a default URL."""
         if self.avatar and hasattr(self.avatar, 'url'):
             return self.avatar.url
-        return '/static/images/default-avatar.png'
+        # Using a placeholder service for default avatar
+        return f'https://ui-avatars.com/api/?name={self.first_name}+{self.last_name}&background=4CAF50&color=fff&size=100'
 
     def get_absolute_url(self):
         """Returns the URL for the user's profile."""
@@ -139,3 +153,83 @@ def user_post_save(sender, instance, created, **kwargs):
         # You can add any post-creation logic here
         # For example, sending welcome email, creating related objects, etc.
         pass
+
+
+class Producer(models.Model):
+    """
+    Producer profile extending User model.
+    Contains business information for local producers.
+    """
+    
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='producer_profile'
+    )
+    
+    business_name = models.CharField(
+        'Nom de l\'entreprise',
+        max_length=200,
+        help_text='Nom de votre exploitation ou entreprise'
+    )
+    
+    description = models.TextField(
+        'Description',
+        blank=True,
+        help_text='Décrivez votre activité, vos méthodes de production, etc.'
+    )
+    
+    siret = models.CharField(
+        'Numéro SIRET',
+        max_length=14,
+        blank=True,
+        help_text='Numéro SIRET de votre entreprise (optionnel pour MVP)'
+    )
+    
+    address = models.TextField(
+        'Adresse complète',
+        help_text='Adresse de votre exploitation'
+    )
+    
+    city = models.CharField(
+        'Ville',
+        max_length=100
+    )
+    
+    postal_code = models.CharField(
+        'Code postal',
+        max_length=10
+    )
+    
+    region = models.CharField(
+        'Région',
+        max_length=100,
+        help_text='Région française pour faciliter la recherche locale'
+    )
+    
+    is_verified = models.BooleanField(
+        'Producteur vérifié',
+        default=False,
+        help_text='Indique si le producteur a été vérifié par l\'équipe GreenCart'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Producteur'
+        verbose_name_plural = 'Producteurs'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['region']),
+            models.Index(fields=['is_verified']),
+            models.Index(fields=['city']),
+        ]
+    
+    def __str__(self):
+        return f"{self.business_name} - {self.user.email}"
+    
+    @property
+    def full_address(self):
+        """Retourne l'adresse complète formatée."""
+        return f"{self.address}, {self.postal_code} {self.city}"

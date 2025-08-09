@@ -6,7 +6,7 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
-from .models import User
+from .models import User, Producer
 
 
 @admin.register(User)
@@ -15,13 +15,13 @@ class UserAdmin(BaseUserAdmin):
 
     # Fields displayed in the list view
     list_display = (
-        'email', 'username', 'full_name', 'phone_number',
+        'email', 'username', 'full_name', 'user_type', 'phone_number',
         'is_verified', 'is_staff', 'is_active', 'date_joined', 'avatar_preview'
     )
 
     # Available filters
     list_filter = (
-        'is_staff', 'is_superuser', 'is_active', 'is_verified',
+        'user_type', 'is_staff', 'is_superuser', 'is_active', 'is_verified',
         'date_joined', 'last_login'
     )
 
@@ -40,7 +40,7 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('email', 'username', 'password')
         }),
         ('Personal Information', {
-            'fields': ('first_name', 'last_name', 'phone_number')
+            'fields': ('first_name', 'last_name', 'phone_number', 'user_type')
         }),
         ('Profile Picture', {
             'fields': ('avatar', 'avatar_preview_large'),
@@ -67,7 +67,7 @@ class UserAdmin(BaseUserAdmin):
         }),
         ('Personal Information', {
             'classes': ('wide',),
-            'fields': ('first_name', 'last_name', 'phone_number'),
+            'fields': ('first_name', 'last_name', 'phone_number', 'user_type'),
         }),
         ('Permissions', {
             'classes': ('collapse',),
@@ -164,7 +164,42 @@ class UserAdmin(BaseUserAdmin):
     deactivate_users.short_description = 'Deactivate selected users'
 
 
+@admin.register(Producer)
+class ProducerAdmin(admin.ModelAdmin):
+    """Admin for Producer model."""
+    
+    list_display = [
+        'business_name', 'user', 'city', 'region',
+        'is_verified', 'created_at'
+    ]
+    list_filter = [
+        'region', 'city', 'is_verified', 'created_at'
+    ]
+    search_fields = [
+        'business_name', 'user__email', 'user__first_name', 
+        'user__last_name', 'city', 'region'
+    ]
+    raw_id_fields = ['user']
+    
+    fieldsets = (
+        ('Utilisateur', {
+            'fields': ('user',)
+        }),
+        ('Informations d\'entreprise', {
+            'fields': ('business_name', 'description', 'siret')
+        }),
+        ('Adresse', {
+            'fields': ('address', 'city', 'postal_code', 'region')
+        }),
+        ('Statut', {
+            'fields': ('is_verified',)
+        }),
+    )
+    
+    readonly_fields = ['created_at', 'updated_at']
+
+
 # Customize admin site
-admin.site.site_header = 'Django Boilerplate Administration'
-admin.site.site_title = 'Django Boilerplate Admin'
+admin.site.site_header = 'GreenCart Administration'
+admin.site.site_title = 'GreenCart Admin'
 admin.site.index_title = 'Dashboard'

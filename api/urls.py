@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.conf import settings
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 import django
 
 
@@ -14,28 +15,49 @@ import django
 def api_root(request):
     """API root endpoint with available endpoints."""
     return Response({
-        'message': 'Welcome to Django Boilerplate API! 🚀',
+        'message': 'Welcome to GreenCart API! 🌱',
         'version': '1.0.0',
+        'description': 'API REST pour une plateforme de circuit court',
         'django_version': django.get_version(),
         'debug_mode': settings.DEBUG,
         'available_endpoints': {
             'authentication': {
-                'register': '/api/v1/auth/register/',
-                'login': '/api/v1/auth/login/',
-                'logout': '/api/v1/auth/logout/',
-                'profile': '/api/v1/auth/profile/',
-                'users': '/api/v1/auth/users/',
-                'change_password': '/api/v1/auth/users/change_password/',
+                'register': '/api/auth/register/',
+                'login': '/api/auth/login/',
+                'logout': '/api/auth/logout/',
+                'profile': '/api/auth/profile/',
+                'users': '/api/auth/users/',
+                'producers': '/api/auth/producers/',
+            },
+            'products': {
+                'categories': '/api/products/categories/',
+                'products': '/api/products/products/',
+                'my_products': '/api/products/products/my_products/',
+                'featured': '/api/products/products/featured/',
+                'by_region': '/api/products/products/by_region/',
+            },
+            'cart': {
+                'current': '/api/cart/cart/current/',
+                'add': '/api/cart/add/',
+                'summary': '/api/cart/summary/',
+                'clear': '/api/cart/cart/clear/',
+            },
+            'orders': {
+                'my_orders': '/api/orders/my-orders/',
+                'producer_orders': '/api/orders/producer-orders/',
+                'create_from_cart': '/api/orders/create-from-cart/',
+                'statistics': '/api/orders/statistics/',
             },
             'documentation': {
-                'api_docs': '/api/docs/' if settings.DEBUG else None,
-                'schema': '/api/schema/' if settings.DEBUG else None,
+                'schema': '/api/schema/',
+                'swagger_ui': '/api/docs/',
+                'redoc': '/api/redoc/',
             }
         },
         'authentication': {
             'type': 'Token-based',
             'header_format': 'Authorization: Token your_token_here',
-            'obtain_token': 'POST /api/v1/auth/login/ with email and password'
+            'obtain_token': 'POST /api/auth/login/ with email and password'
         },
         'status': 'operational'
     })
@@ -47,8 +69,16 @@ urlpatterns = [
     # API root
     path('', api_root, name='api_root'),
 
-    # Version 1 API endpoints
-    path('v1/auth/', include('accounts.urls', namespace='accounts')),
+    # API Documentation
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('docs/', SpectacularSwaggerView.as_view(url_name='api:schema'), name='swagger-ui'),
+    path('redoc/', SpectacularRedocView.as_view(url_name='api:schema'), name='redoc'),
+
+    # GreenCart API endpoints
+    path('auth/', include('accounts.urls', namespace='accounts')),
+    path('products/', include('products.urls', namespace='products')),
+    path('cart/', include('cart.urls', namespace='cart')),
+    path('orders/', include('orders.urls', namespace='orders')),
 
     # Health check
     path('health/', api_root, name='health_check'),

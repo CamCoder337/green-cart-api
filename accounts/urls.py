@@ -8,6 +8,7 @@ from . import views
 # Create router for ViewSets
 router = DefaultRouter()
 router.register(r'users', views.UserViewSet, basename='user')
+router.register(r'producers', views.ProducerViewSet, basename='producer')
 
 app_name = 'accounts'
 

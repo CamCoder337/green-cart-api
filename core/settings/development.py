@@ -71,33 +71,9 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=bool)
 
 # ==============================================================================
-# DJANGO DEBUG TOOLBAR
+# DEVELOPMENT TOOLS - Désactivés pour le MVP
 # ==============================================================================
-
-# Ajouter debug_toolbar seulement si DEBUG est True
-INSTALLED_APPS += [
-    'debug_toolbar',
-]
-
-# Ajouter le middleware du debug toolbar en première position
-MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
-] + MIDDLEWARE
-
-# IPs autorisées pour le debug toolbar
-INTERNAL_IPS = [
-    '127.0.0.1',
-    'localhost',
-]
-
-# Configuration du debug toolbar
-DEBUG_TOOLBAR_CONFIG = {
-    'DISABLE_PANELS': [
-        'debug_toolbar.panels.redirects.RedirectsPanel',
-    ],
-    'SHOW_TEMPLATE_CONTEXT': True,
-    'SHOW_TOOLBAR_CALLBACK': lambda request: DEBUG,
-}
+# Les outils de debug seront ajoutés plus tard si nécessaire
 
 # ==============================================================================
 # LOGGING CONFIGURATION
@@ -141,14 +117,8 @@ LOGGING = {
 }
 
 # ==============================================================================
-# DEVELOPMENT UTILITIES
+# DEVELOPMENT UTILITIES - Configuration minimale pour MVP
 # ==============================================================================
-
-# Django Extensions configuration
-DJANGO_EXTENSIONS_SETTINGS = {
-    'SHELL_PLUS_PRINT_SQL': True,
-    'SHELL_PLUS_PRINT_SQL_TRUNCATE': 1000,
-}
 
 # Désactiver les vérifications de sécurité en développement
 SECURE_SSL_REDIRECT = False

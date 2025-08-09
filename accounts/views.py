@@ -12,25 +12,65 @@ from django.contrib.auth import login
 from django.db.models import Q, Count
 from django.utils import timezone
 from datetime import datetime, timedelta
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
+from drf_spectacular.openapi import OpenApiTypes
 
-from .models import User
+from .models import User, Producer
 from .serializers import (
     UserRegistrationSerializer,
     UserLoginSerializer,
     UserProfileSerializer,
     UserListSerializer,
     ChangePasswordSerializer,
-    UserStatsSerializer
+    UserStatsSerializer,
+    ProducerSerializer
 )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Authentication'],
+        summary="Liste des utilisateurs",
+        description="Récupère la liste paginée de tous les utilisateurs avec filtres et recherche",
+        parameters=[
+            OpenApiParameter('user_type', OpenApiTypes.STR, description='Filtrer par type d\'utilisateur (CONSUMER/PRODUCER)'),
+            OpenApiParameter('is_verified', OpenApiTypes.BOOL, description='Filtrer par statut de vérification'),
+            OpenApiParameter('search', OpenApiTypes.STR, description='Recherche par email, nom, prénom'),
+        ]
+    ),
+    retrieve=extend_schema(
+        tags=['Authentication'],
+        summary="Détail d'un utilisateur",
+        description="Récupère les détails d'un utilisateur spécifique"
+    ),
+    create=extend_schema(
+        tags=['Authentication'],
+        summary="Créer un utilisateur",
+        description="Crée un nouvel utilisateur (admin uniquement)"
+    ),
+    update=extend_schema(
+        tags=['Authentication'],
+        summary="Modifier un utilisateur",
+        description="Modifie complètement un utilisateur existant"
+    ),
+    partial_update=extend_schema(
+        tags=['Authentication'],
+        summary="Modifier partiellement un utilisateur",
+        description="Modifie partiellement un utilisateur existant"
+    ),
+    destroy=extend_schema(
+        tags=['Authentication'],
+        summary="Supprimer un utilisateur",
+        description="Supprime un utilisateur (admin uniquement)"
+    )
+)
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet for user management."""
 
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['is_verified', 'is_active', 'is_staff']
+    filterset_fields = ['is_verified', 'is_active', 'is_staff', 'user_type']
     search_fields = ['email', 'username', 'first_name', 'last_name']
     ordering_fields = ['date_joined', 'last_login', 'email']
     ordering = ['-date_joined']
@@ -162,6 +202,39 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+@extend_schema(
+    tags=['Authentication'],
+    summary="Inscription utilisateur",
+    description="Crée un nouveau compte utilisateur (consommateur ou producteur)",
+    request=UserRegistrationSerializer,
+    responses={
+        201: {
+            "description": "Inscription réussie",
+            "examples": {
+                "application/json": {
+                    "message": "User created successfully.",
+                    "user": {"email": "user@example.com", "first_name": "John"},
+                    "token": "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"
+                }
+            }
+        },
+        400: {"description": "Erreurs de validation"}
+    },
+    examples=[
+        OpenApiExample(
+            "Inscription consommateur",
+            value={
+                "email": "consumer@example.com",
+                "password": "motdepasse123",
+                "password_confirm": "motdepasse123",
+                "first_name": "Marie",
+                "last_name": "Dupont",
+                "user_type": "CONSUMER",
+                "phone_number": "+237677123456"
+            }
+        )
+    ]
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_user(request):
@@ -189,6 +262,34 @@ def register_user(request):
     )
 
 
+@extend_schema(
+    tags=['Authentication'],
+    summary="Connexion utilisateur",
+    description="Authentifie un utilisateur et retourne son token d'API",
+    request=UserLoginSerializer,
+    responses={
+        200: {
+            "description": "Connexion réussie",
+            "examples": {
+                "application/json": {
+                    "message": "Login successful.",
+                    "user": {"email": "user@example.com", "first_name": "John"},
+                    "token": "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"
+                }
+            }
+        },
+        400: {"description": "Email ou mot de passe incorrect"}
+    },
+    examples=[
+        OpenApiExample(
+            "Connexion",
+            value={
+                "email": "consumer@test.com",
+                "password": "testpass123"
+            }
+        )
+    ]
+)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login_user(request):
@@ -222,6 +323,13 @@ def login_user(request):
     )
 
 
+@extend_schema(
+    tags=['Authentication'],
+    summary="Déconnexion utilisateur",
+    description="Déconnecte l'utilisateur en supprimant son token",
+    request=None,
+    responses={200: {"description": "Déconnexion réussie"}}
+)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def logout_user(request):
@@ -258,9 +366,47 @@ def api_info(request):
     })
 
 
+@extend_schema(
+    tags=['Authentication'],
+    summary="Profil utilisateur",
+    description="Récupère le profil de l'utilisateur connecté",
+    responses={200: UserProfileSerializer}
+)
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
     """Get current user's profile."""
     serializer = UserProfileSerializer(request.user)
     return Response(serializer.data)
+
+
+class ProducerViewSet(viewsets.ModelViewSet):
+    """ViewSet for producer management."""
+    
+    queryset = Producer.objects.all()
+    serializer_class = ProducerSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['region', 'city', 'is_verified']
+    search_fields = ['business_name', 'user__first_name', 'user__last_name', 'region', 'city']
+    ordering_fields = ['created_at', 'business_name', 'region']
+    ordering = ['-created_at']
+    
+    def get_queryset(self):
+        """Filter queryset based on user permissions."""
+        user = self.request.user
+        
+        if user.is_staff or user.is_superuser:
+            return Producer.objects.all()
+        else:
+            # Regular users can only see verified producers
+            return Producer.objects.filter(is_verified=True)
+    
+    def get_permissions(self):
+        """Set permissions based on action."""
+        if self.action in ['list', 'retrieve']:
+            permission_classes = [permissions.AllowAny]
+        else:
+            permission_classes = [IsAuthenticated]
+        
+        return [permission() for permission in permission_classes]

@@ -51,13 +51,16 @@ THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
-    'django_extensions',
     'django_filters',
+    'drf_spectacular',
 ]
 
 LOCAL_APPS = [
     'accounts',
-    'api'
+    'api',
+    'products',
+    'orders', 
+    'cart',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -68,7 +71,6 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', #serve static files
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -158,12 +160,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static'
-]
 
-# WhiteNoise configuration
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Note: static/ directory will be created when needed
 
 # Media files
 MEDIA_URL = '/media/'
@@ -207,6 +205,7 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.FormParser',
         'rest_framework.parsers.MultiPartParser',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 # ==============================================================================
@@ -309,3 +308,75 @@ CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==============================================================================
+# DRF SPECTACULAR - API DOCUMENTATION
+# ==============================================================================
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'GreenCart API',
+    'DESCRIPTION': 'API REST pour une plateforme de circuit court connectant producteurs locaux et consommateurs écoresponsables',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': r'/api/',
+    'SCHEMA_PATH_PREFIX_TRIM': True,
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    'SERVE_AUTHENTICATION': [],
+    'COMPONENT_NO_READ_ONLY_REQUIRED': True,
+    'APPEND_COMPONENTS': {
+        'securitySchemes': {
+            'tokenAuth': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'Authorization',
+                'description': 'Token-based authentication avec le préfixe "Token ".\n\nExemple: "Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"'
+            },
+            'sessionAuth': {
+                'type': 'apiKey',
+                'in': 'cookie',
+                'name': 'sessionid',
+                'description': 'Session-based authentication via Django sessions'
+            }
+        }
+    },
+    'SECURITY': [
+        {'tokenAuth': []},
+        {'sessionAuth': []},
+        {}
+    ],
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+        'filter': True,
+        'requestSnippetsEnabled': True,
+        'showExtensions': True,
+        'showCommonExtensions': True,
+        'tryItOutEnabled': True,
+        'supportedSubmitMethods': ['get', 'post', 'put', 'delete', 'patch', 'head', 'options'],
+    },
+    'SERVERS': [
+        {'url': 'http://127.0.0.1:8000/api', 'description': 'Development server'},
+        {'url': 'http://localhost:8000/api', 'description': 'Local server'},
+    ],
+    'TAGS': [
+        {'name': 'Authentication', 'description': 'Gestion des utilisateurs et authentification'},
+        {'name': 'Products', 'description': 'Gestion des produits et catégories'},
+        {'name': 'Categories', 'description': 'Gestion des catégories de produits'},
+        {'name': 'Cart', 'description': 'Gestion du panier d\'achat'},
+        {'name': 'Orders', 'description': 'Gestion des commandes'},
+        {'name': 'Producers', 'description': 'Gestion des producteurs'},
+    ],
+    'EXTERNAL_DOCS': {
+        'description': 'Documentation complète GreenCart',
+        'url': 'https://github.com/camcoder337/greencart-api',
+    },
+    'CONTACT': {
+        'name': 'Équipe GreenCart',
+        'email': 'contact@greencart.com',
+    },
+    'LICENSE': {
+        'name': 'MIT License',
+    },
+}
