@@ -44,8 +44,7 @@ COPY --chown=app:app . .
 # Create necessary directories
 RUN mkdir -p staticfiles media logs
 
-# Collect static files (build-time)
-RUN python manage.py collectstatic --noinput || echo "Static files collection skipped"
+# Skip static files collection during build (will be done at runtime with proper env vars)
 
 # Expose port
 EXPOSE 8000

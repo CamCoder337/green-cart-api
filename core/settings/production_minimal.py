@@ -22,7 +22,11 @@ ALLOWED_HOSTS = config(
 # DATABASE CONFIGURATION
 # ==============================================================================
 DATABASES = {
-    'default': config('DATABASE_URL', cast=db_url)
+    'default': config(
+        'DATABASE_URL', 
+        default='sqlite:///db.sqlite3',
+        cast=db_url
+    )
 }
 
 # ==============================================================================
