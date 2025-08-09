@@ -136,7 +136,7 @@ class User(AbstractUser):
         number = self.phone_number.replace('+237', '').replace('237', '').replace(' ', '')
 
         # Add +237 prefix if it's a valid Cameroon number
-        if len(number) >= 8:
+        if len(number) >= 9:
             return f"+237{number}"
         return self.phone_number
 
