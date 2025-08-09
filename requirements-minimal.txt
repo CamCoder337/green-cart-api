@@ -1,0 +1,12 @@
+# MINIMAL REQUIREMENTS - Version de secours pour déploiement
+Django
+djangorestframework
+python-decouple
+dj-database-url
+django-filter
+django-cors-headers
+drf-spectacular
+Pillow
+psycopg2-binary
+gunicorn
+whitenoise

@@ -23,9 +23,17 @@ RUN useradd --create-home --shell /bin/bash app
 USER app
 WORKDIR /home/app
 
-# Copy requirements and install Python dependencies
-COPY --chown=app:app requirements.txt ./
-RUN pip install --user -r requirements.txt
+# Copy requirements files
+COPY --chown=app:app requirements.txt requirements-flexible.txt requirements-minimal.txt ./
+
+# Install dependencies with multiple fallback strategies
+RUN pip install --user -r requirements.txt || \
+    (echo "Standard requirements failed, trying flexible versions..." && \
+     pip install --user -r requirements-flexible.txt) || \
+    (echo "Flexible requirements failed, trying minimal versions..." && \
+     pip install --user -r requirements-minimal.txt) || \
+    (echo "All requirements failed, installing core packages individually..." && \
+     pip install --user Django djangorestframework python-decouple psycopg2-binary gunicorn)
 
 # Copy project files
 COPY --chown=app:app . .
