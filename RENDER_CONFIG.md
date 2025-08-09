@@ -2,20 +2,28 @@
 
 Puisque vous n'utilisez pas `render.yaml`, voici les variables d'environnement à configurer manuellement dans Render :
 
-## Variables d'environnement requises :
+## Variables d'environnement à configurer :
 
+### ✅ Variables REQUISES (à définir) :
+```env
+SECRET_KEY=<auto-généré-par-render>
+DATABASE_URL=<auto-fourni-par-render-postgres>
+```
+
+### ⚙️ Variables OPTIONNELLES (avec valeurs par défaut) :
 ```env
 DJANGO_SETTINGS_MODULE=core.settings.production
 DEBUG=false
-SECRET_KEY=<auto-généré-par-render>
-DATABASE_URL=<auto-fourni-par-render-postgres>
-ALLOWED_HOSTS=*.onrender.com,localhost,127.0.0.1
+ALLOWED_HOSTS=* (par défaut, sera remplacé par votre domaine)
 CORS_ALLOWED_ORIGINS=https://*.onrender.com,http://localhost:3000
 CSRF_TRUSTED_ORIGINS=https://*.onrender.com
 PORT=8000
 WORKERS=3
 POPULATE_TEST_DATA=true
 ```
+
+### 🚫 Variables SUPPRIMÉES :
+- EMAIL_HOST, EMAIL_PORT, etc. (email désactivé pour MVP)
 
 ## Étapes de configuration dans Render :
 

@@ -18,6 +18,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
+    default='*',
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 
@@ -90,16 +91,11 @@ else:
     }
 
 # ==============================================================================
-# EMAIL CONFIGURATION
+# EMAIL CONFIGURATION - DISABLED FOR MVP
 # ==============================================================================
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_PORT = config('EMAIL_PORT', cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+# Console backend for development/testing
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # ==============================================================================
 # LOGGING CONFIGURATION
@@ -174,6 +170,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
+    default='https://*.onrender.com,http://localhost:3000',
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 
