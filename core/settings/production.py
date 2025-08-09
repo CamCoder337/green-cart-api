@@ -55,26 +55,39 @@ X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_AGE = 1800  # 30 minutes
+SESSION_COOKIE_SAMESITE = 'Lax'  # Allow admin/swagger to work
 
 # CSRF Security
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'  # Allow cross-origin admin access
+CSRF_USE_SESSIONS = True  # Use sessions for CSRF token storage
 
 # ==============================================================================
 # CACHE CONFIGURATION
 # ==============================================================================
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': config('REDIS_URL'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        },
-        'KEY_PREFIX': config('CACHE_KEY_PREFIX', default='django_boilerplate'),
-        'TIMEOUT': config('CACHE_TIMEOUT', default=300, cast=int),
+# Fallback to local memory cache if Redis not available
+REDIS_URL = config('REDIS_URL', default=None)
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+            'KEY_PREFIX': config('CACHE_KEY_PREFIX', default='greencart'),
+            'TIMEOUT': config('CACHE_TIMEOUT', default=300, cast=int),
+        }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'greencart-cache',
+        }
+    }
 
 # ==============================================================================
 # EMAIL CONFIGURATION
@@ -167,15 +180,27 @@ CORS_ALLOWED_ORIGINS = config(
 CORS_ALLOW_CREDENTIALS = True
 
 # ==============================================================================
+# CSRF CONFIGURATION
+# ==============================================================================
+
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
+)
+
+# ==============================================================================
 # CELERY CONFIGURATION (pour les tâches asynchrones)
 # ==============================================================================
 
-CELERY_BROKER_URL = config('CELERY_BROKER_URL', default=config('REDIS_URL'))
-CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default=config('REDIS_URL'))
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
+# Only configure Celery if Redis is available
+if REDIS_URL:
+    CELERY_BROKER_URL = config('CELERY_BROKER_URL', default=REDIS_URL)
+    CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default=REDIS_URL)
+    CELERY_ACCEPT_CONTENT = ['json']
+    CELERY_TASK_SERIALIZER = 'json'
+    CELERY_RESULT_SERIALIZER = 'json'
+    CELERY_TIMEZONE = TIME_ZONE
 
 # ==============================================================================
 # MONITORING & SENTRY (optionnel)
@@ -197,3 +222,32 @@ if SENTRY_DSN:
         send_default_pii=True,
         environment=config('ENVIRONMENT', default='production'),
     )
+
+# ==============================================================================
+# SWAGGER CONFIGURATION FOR PRODUCTION
+# ==============================================================================
+
+# Override Swagger servers for production
+SPECTACULAR_SETTINGS = SPECTACULAR_SETTINGS.copy()  # Copy from base settings
+SPECTACULAR_SETTINGS.update({
+    'SERVERS': [
+        {'url': 'https://' + ALLOWED_HOSTS[0] + '/api', 'description': 'Production server'} if ALLOWED_HOSTS and not ALLOWED_HOSTS[0].startswith('*') else {'url': '/api', 'description': 'Current server'},
+        {'url': 'http://127.0.0.1:8000/api', 'description': 'Local development'},
+    ],
+    'SWAGGER_UI_SETTINGS': SPECTACULAR_SETTINGS['SWAGGER_UI_SETTINGS'].copy(),
+})
+
+# Enhance Swagger for production
+SPECTACULAR_SETTINGS['SWAGGER_UI_SETTINGS'].update({
+    'defaultModelsExpandDepth': 2,
+    'defaultModelExpandDepth': 2,
+    'displayRequestDuration': True,
+    'requestInterceptor': '''(request) => {
+        // Add CSRF token for session auth if available
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        if (csrfToken && request.headers) {
+            request.headers['X-CSRFToken'] = csrfToken;
+        }
+        return request;
+    }''',
+})

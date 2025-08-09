@@ -74,10 +74,12 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'core.middleware.SwaggerCSRFExemptMiddleware',  # Exempt Swagger from CSRF
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.CSRFDebugMiddleware',  # Debug CSRF issues if needed
 ]
 
 # ==============================================================================
@@ -355,6 +357,12 @@ SPECTACULAR_SETTINGS = {
         'showCommonExtensions': True,
         'tryItOutEnabled': True,
         'supportedSubmitMethods': ['get', 'post', 'put', 'delete', 'patch', 'head', 'options'],
+        'docExpansion': 'none',
+        'operationsSorter': 'alpha',
+        'tagsSorter': 'alpha',
+        'layout': 'StandaloneLayout',
+        'requestInterceptor': '(request) => { console.log("Request:", request); return request; }',
+        'responseInterceptor': '(response) => { console.log("Response:", response); return response; }',
     },
     'SERVERS': [
         {'url': 'http://127.0.0.1:8000/api', 'description': 'Development server'},

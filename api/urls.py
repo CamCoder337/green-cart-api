@@ -6,6 +6,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 import django
 
@@ -65,14 +67,27 @@ def api_root(request):
 
 app_name = 'api'
 
+# CSRF-exempt wrapper for Swagger views
+@method_decorator(csrf_exempt, name='dispatch')
+class CSRFExemptSpectacularSwaggerView(SpectacularSwaggerView):
+    """Swagger UI with CSRF exemption for production use."""
+    pass
+
+
+@method_decorator(csrf_exempt, name='dispatch') 
+class CSRFExemptSpectacularRedocView(SpectacularRedocView):
+    """ReDoc with CSRF exemption for production use."""
+    pass
+
+
 urlpatterns = [
     # API root
     path('', api_root, name='api_root'),
 
-    # API Documentation
+    # API Documentation with CSRF exemption
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('docs/', SpectacularSwaggerView.as_view(url_name='api:schema'), name='swagger-ui'),
-    path('redoc/', SpectacularRedocView.as_view(url_name='api:schema'), name='redoc'),
+    path('docs/', CSRFExemptSpectacularSwaggerView.as_view(url_name='api:schema'), name='swagger-ui'),
+    path('redoc/', CSRFExemptSpectacularRedocView.as_view(url_name='api:schema'), name='redoc'),
 
     # GreenCart API endpoints
     path('auth/', include('accounts.urls', namespace='accounts')),

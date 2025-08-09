@@ -11,7 +11,7 @@ dj-database-url==3.0.1
 djangorestframework==3.16.0
 django-filter==25.1
 django-cors-headers==4.7.0
-drf_spectacular
+drf-spectacular==0.28.0
 
 # ==============================================================================
 # IMAGES & MEDIA - Pour les photos des produits
