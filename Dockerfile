@@ -8,7 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    DJANGO_SETTINGS_MODULE=core.settings.production \
+    DJANGO_SETTINGS_MODULE=core.settings.production_minimal \
     PATH="/home/app/.local/bin:$PATH"
 
 # Install system dependencies
@@ -52,5 +52,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD python manage.py check || exit 1
 
-# Startup command with migrations, test data, and gunicorn
-CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput --clear && python create_test_data.py || true && python fix_swagger_auth.py || true && gunicorn --bind 0.0.0.0:${PORT:-8000} --workers ${WORKERS:-3} --timeout 120 core.wsgi:application"]
+# Startup command with diagnostics, migrations, test data, and gunicorn
+CMD ["sh", "-c", "echo '🚀 Starting GreenCart API...' && python diagnostic.py && python manage.py migrate --noinput && python manage.py collectstatic --noinput --clear && python create_test_data.py || true && python fix_swagger_auth.py || true && echo '🌐 Starting server...' && gunicorn --bind 0.0.0.0:${PORT:-8000} --workers ${WORKERS:-3} --timeout 120 core.wsgi:application"]

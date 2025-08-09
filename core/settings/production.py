@@ -98,64 +98,25 @@ else:
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # ==============================================================================
-# LOGGING CONFIGURATION
+# LOGGING CONFIGURATION - SIMPLIFIED FOR RENDER
 # ==============================================================================
 
-# Créer le dossier logs s'il n'existe pas
-LOGS_DIR = BASE_DIR / 'logs'
-LOGS_DIR.mkdir(exist_ok=True)
+# Disable Django's default logging and use simple console logging
+LOGGING_CONFIG = None
 
-LOGGING = {
+import logging.config
+logging.config.dictConfig({
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'json': {
-            'format': '{"level": "{levelname}", "time": "{asctime}", "module": "{module}", "message": "{message}"}',
-            'style': '{',
-        },
-    },
     'handlers': {
-        'file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': LOGS_DIR / 'django.log',
-            'maxBytes': 1024 * 1024 * 10,  # 10 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
-        'error_file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': LOGS_DIR / 'django_error.log',
-            'maxBytes': 1024 * 1024 * 10,  # 10 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-            'level': 'ERROR',
-        },
         'console': {
             'class': 'logging.StreamHandler',
-            'formatter': 'json',
         },
     },
     'root': {
-        'handlers': ['console', 'file'],
-        'level': 'INFO',
+        'handlers': ['console'],
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file', 'error_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'django.security': {
-            'handlers': ['console', 'error_file'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
-    },
-}
+})
 
 # ==============================================================================
 # PERFORMANCE SETTINGS
