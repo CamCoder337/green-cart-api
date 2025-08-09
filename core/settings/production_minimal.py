@@ -14,7 +14,7 @@ DEBUG = False
 # ==============================================================================
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='*',
+    default='*.onrender.com,gc-api-3yjt.onrender.com,localhost,127.0.0.1',
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 
@@ -50,6 +50,13 @@ CORS_ALLOW_CREDENTIALS = True
 # DISABLE LOGGING TO AVOID ERRORS
 # ==============================================================================
 LOGGING_CONFIG = None
+
+# ==============================================================================
+# CSRF CONFIGURATION - DISABLE FOR API ONLY DEPLOYMENT
+# ==============================================================================
+CSRF_USE_SESSIONS = False
+CSRF_COOKIE_SECURE = False
+USE_TZ = True
 
 # ==============================================================================
 # STATIC FILES

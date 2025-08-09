@@ -54,4 +54,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD python manage.py check || exit 1
 
 # Startup command with diagnostics, migrations, test data, and gunicorn
-CMD ["sh", "-c", "echo '🚀 Starting GreenCart API...' && python diagnostic.py && python manage.py migrate --noinput && python manage.py collectstatic --noinput --clear && python create_test_data.py || true && python fix_swagger_auth.py || true && echo '🌐 Starting server...' && gunicorn --bind 0.0.0.0:${PORT:-8000} --workers ${WORKERS:-3} --timeout 120 core.wsgi:application"]
+CMD ["sh", "-c", "echo '🚀 Starting GreenCart API...' && python diagnostic.py && python manage.py migrate --noinput && python manage.py collectstatic --noinput --clear && python create_test_data.py || true && python fix_swagger_auth.py || true && echo '🌐 Starting server on port ${PORT:-8000}...' && gunicorn --bind 0.0.0.0:${PORT:-8000} --workers ${WORKERS:-3} --timeout 120 --access-logfile - --error-logfile - core.wsgi:application"]
