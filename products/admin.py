@@ -41,9 +41,6 @@ class ProductAdmin(admin.ModelAdmin):
         ('Caractéristiques', {
             'fields': ('is_organic', 'is_local', 'is_active')
         }),
-        ('Média', {
-            'fields': ('image',)
-        }),
     )
 
 

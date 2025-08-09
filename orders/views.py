@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
+from drf_spectacular.openapi import OpenApiTypes
 
 from .models import Order, OrderItem, OrderStatusHistory
 from .serializers import (
@@ -20,6 +22,42 @@ from .serializers import (
 )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Orders'],
+        summary="Liste des commandes",
+        description="Récupère la liste des commandes selon les permissions utilisateur",
+        parameters=[
+            OpenApiParameter('status', OpenApiTypes.STR, description='Filtrer par statut de commande'),
+            OpenApiParameter('search', OpenApiTypes.STR, description='Recherche par numéro de commande, email client'),
+        ]
+    ),
+    retrieve=extend_schema(
+        tags=['Orders'],
+        summary="Détail d'une commande",
+        description="Récupère les détails complets d'une commande spécifique"
+    ),
+    create=extend_schema(
+        tags=['Orders'],
+        summary="Créer une commande",
+        description="Crée une nouvelle commande à partir du panier"
+    ),
+    update=extend_schema(
+        tags=['Orders'],
+        summary="Modifier une commande",
+        description="Modifie complètement une commande existante"
+    ),
+    partial_update=extend_schema(
+        tags=['Orders'],
+        summary="Modifier partiellement une commande",
+        description="Modifie partiellement une commande existante"
+    ),
+    destroy=extend_schema(
+        tags=['Orders'],
+        summary="Supprimer une commande",
+        description="Supprime une commande (admin uniquement)"
+    )
+)
 class OrderViewSet(viewsets.ModelViewSet):
     """ViewSet for orders management."""
     
@@ -59,6 +97,17 @@ class OrderViewSet(viewsets.ModelViewSet):
         # The CreateOrderSerializer handles the order creation logic
         serializer.save()
     
+    @extend_schema(
+        tags=['Orders'],
+        summary="Annuler une commande",
+        description="Annule une commande (consommateur uniquement)",
+        request=CancelOrderSerializer,
+        responses={
+            200: {"description": "Commande annulée avec succès"},
+            403: {"description": "Permission refusée"},
+            400: {"description": "Erreurs de validation"}
+        }
+    )
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
         """Cancel an order (consumer only)."""
@@ -89,6 +138,17 @@ class OrderViewSet(viewsets.ModelViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
     
+    @extend_schema(
+        tags=['Orders'],
+        summary="Mettre à jour le statut",
+        description="Met à jour le statut d'une commande (producteurs uniquement)",
+        request=UpdateOrderStatusSerializer,
+        responses={
+            200: {"description": "Statut mis à jour avec succès"},
+            403: {"description": "Permission refusée"},
+            400: {"description": "Erreurs de validation"}
+        }
+    )
     @action(detail=True, methods=['post'])
     def update_status(self, request, pk=None):
         """Update order status (producers only)."""
@@ -127,6 +187,12 @@ class OrderViewSet(viewsets.ModelViewSet):
         )
 
 
+@extend_schema(
+    tags=['Orders'],
+    summary="Mes commandes",
+    description="Récupère toutes les commandes de l'utilisateur connecté (consommateur ou producteur)",
+    responses={200: OrderListSerializer(many=True)}
+)
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def my_orders(request):
@@ -204,6 +270,16 @@ def order_detail(request, order_id):
     return Response(serializer.data)
 
 
+@extend_schema(
+    tags=['Orders'],
+    summary="Créer commande depuis panier",
+    description="Crée une nouvelle commande à partir des articles dans le panier de l'utilisateur",
+    request=CreateOrderSerializer,
+    responses={
+        201: {"description": "Commande créée avec succès"},
+        400: {"description": "Erreurs de validation ou panier vide"}
+    }
+)
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def create_order_from_cart(request):
@@ -227,6 +303,27 @@ def create_order_from_cart(request):
     )
 
 
+@extend_schema(
+    tags=['Orders'],
+    summary="Statistiques des commandes",
+    description="Récupère les statistiques des commandes pour l'utilisateur connecté",
+    responses={
+        200: {
+            "description": "Statistiques des commandes",
+            "examples": {
+                "application/json": {
+                    "total_orders": 25,
+                    "pending_orders": 3,
+                    "confirmed_orders": 5,
+                    "shipped_orders": 2,
+                    "delivered_orders": 14,
+                    "cancelled_orders": 1,
+                    "total_revenue": "1250.50"
+                }
+            }
+        }
+    }
+)
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def order_statistics(request):

@@ -112,6 +112,13 @@ class UserViewSet(viewsets.ModelViewSet):
             return self.request.user
         return super().get_object()
 
+    @extend_schema(
+        tags=['Authentication'],
+        summary="Mon profil utilisateur",
+        description="Récupère ou modifie le profil de l'utilisateur connecté",
+        methods=['GET', 'PUT', 'PATCH'],
+        responses={200: UserProfileSerializer}
+    )
     @action(detail=False, methods=['get', 'put', 'patch'])
     def me(self, request):
         """Get or update current user's profile."""
@@ -136,6 +143,16 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+    @extend_schema(
+        tags=['Authentication'],
+        summary="Changer mot de passe",
+        description="Change le mot de passe de l'utilisateur connecté",
+        request=ChangePasswordSerializer,
+        responses={
+            200: {"description": "Mot de passe changé avec succès"},
+            400: {"description": "Erreurs de validation"}
+        }
+    )
     @action(detail=False, methods=['post'])
     def change_password(self, request):
         """Change user's password."""
@@ -153,6 +170,15 @@ class UserViewSet(viewsets.ModelViewSet):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+    @extend_schema(
+        tags=['Authentication'],
+        summary="Vérifier un utilisateur",
+        description="Marque un utilisateur comme vérifié (admin uniquement)",
+        responses={
+            200: {"description": "Utilisateur vérifié avec succès"},
+            403: {"description": "Permission refusée"}
+        }
+    )
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
     def verify(self, request, pk=None):
         """Verify a user (admin only)."""
@@ -170,6 +196,15 @@ class UserViewSet(viewsets.ModelViewSet):
             'message': f'User {user.email} has been verified.'
         })
 
+    @extend_schema(
+        tags=['Authentication'],
+        summary="Statistiques utilisateurs",
+        description="Récupère les statistiques générales des utilisateurs (admin uniquement)",
+        responses={
+            200: UserStatsSerializer,
+            403: {"description": "Permission refusée"}
+        }
+    )
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def stats(self, request):
         """Get user statistics (admin only)."""
@@ -346,6 +381,12 @@ def logout_user(request):
         })
 
 
+@extend_schema(
+    tags=['Authentication'],
+    summary="Informations API Auth",
+    description="Récupère les informations générales sur l'API d'authentification",
+    responses={200: {"description": "Informations API avec endpoints disponibles"}}
+)
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def api_info(request):
@@ -380,6 +421,44 @@ def user_profile(request):
     return Response(serializer.data)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Producers'],
+        summary="Liste des producteurs",
+        description="Récupère la liste paginée des producteurs avec filtres et recherche",
+        parameters=[
+            OpenApiParameter('region', OpenApiTypes.STR, description='Filtrer par région'),
+            OpenApiParameter('city', OpenApiTypes.STR, description='Filtrer par ville'),
+            OpenApiParameter('is_verified', OpenApiTypes.BOOL, description='Filtrer par statut de vérification'),
+            OpenApiParameter('search', OpenApiTypes.STR, description='Recherche par nom d\'entreprise, région, ville'),
+        ]
+    ),
+    retrieve=extend_schema(
+        tags=['Producers'],
+        summary="Détail d'un producteur",
+        description="Récupère les détails complets d'un producteur spécifique"
+    ),
+    create=extend_schema(
+        tags=['Producers'],
+        summary="Créer un profil producteur",
+        description="Crée un nouveau profil producteur pour l'utilisateur connecté"
+    ),
+    update=extend_schema(
+        tags=['Producers'],
+        summary="Modifier un profil producteur",
+        description="Modifie complètement le profil producteur"
+    ),
+    partial_update=extend_schema(
+        tags=['Producers'],
+        summary="Modifier partiellement un profil producteur",
+        description="Modifie partiellement le profil producteur"
+    ),
+    destroy=extend_schema(
+        tags=['Producers'],
+        summary="Supprimer un profil producteur",
+        description="Supprime le profil producteur (admin uniquement)"
+    )
+)
 class ProducerViewSet(viewsets.ModelViewSet):
     """ViewSet for producer management."""
     

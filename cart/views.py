@@ -5,6 +5,8 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
+from drf_spectacular.openapi import OpenApiTypes
 
 from .models import Cart, CartItem
 from .serializers import (
@@ -16,6 +18,18 @@ from .serializers import (
 from products.models import Product
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=['Cart'],
+        summary="Liste des paniers",
+        description="Récupère la liste des paniers de l'utilisateur connecté"
+    ),
+    retrieve=extend_schema(
+        tags=['Cart'],
+        summary="Détail du panier",
+        description="Récupère les détails d'un panier spécifique"
+    )
+)
 class CartViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for cart management (consumer only)."""
     
@@ -31,6 +45,12 @@ class CartViewSet(viewsets.ReadOnlyModelViewSet):
         cart, created = Cart.objects.get_or_create(consumer=self.request.user)
         return cart
     
+    @extend_schema(
+        tags=['Cart'],
+        summary="Panier actuel",
+        description="Récupère le panier actuel de l'utilisateur connecté",
+        responses={200: CartSerializer}
+    )
     @action(detail=False, methods=['get'])
     def current(self, request):
         """Get current user's cart."""
@@ -38,6 +58,12 @@ class CartViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = CartSerializer(cart)
         return Response(serializer.data)
     
+    @extend_schema(
+        tags=['Cart'],
+        summary="Vider le panier",
+        description="Vide complètement le panier de l'utilisateur connecté",
+        responses={200: {"description": "Panier vidé avec succès"}}
+    )
     @action(detail=False, methods=['post'])
     def clear(self, request):
         """Clear current user's cart."""
@@ -46,6 +72,22 @@ class CartViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({'message': 'Cart cleared successfully.'})
 
 
+@extend_schema(
+    tags=['Cart'],
+    summary="Ajouter au panier",
+    description="Ajoute un produit au panier de l'utilisateur connecté",
+    request=AddToCartSerializer,
+    responses={
+        201: {"description": "Produit ajouté au panier avec succès"},
+        400: {"description": "Erreurs de validation"}
+    },
+    examples=[
+        OpenApiExample(
+            "Ajouter produit",
+            value={"product_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "quantity": 2}
+        )
+    ]
+)
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def add_to_cart(request):
@@ -172,6 +214,25 @@ def add_product_to_cart(request, product_id):
     }, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    tags=['Cart'],
+    summary="Résumé du panier",
+    description="Récupère un résumé du panier avec totaux et statistiques",
+    responses={
+        200: {
+            "description": "Résumé du panier",
+            "examples": {
+                "application/json": {
+                    "total_items": 3,
+                    "total_amount": "45.99",
+                    "items_count": 3,
+                    "is_empty": False,
+                    "has_unavailable_items": False
+                }
+            }
+        }
+    }
+)
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
 def cart_summary(request):
