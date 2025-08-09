@@ -4,6 +4,20 @@ Settings pour l'environnement de production - VERSION MINIMALISTE.
 from .base import *
 from decouple import config
 
+# Override middleware to add WhiteNoise
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static files
+    'corsheaders.middleware.CorsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'core.middleware.SwaggerCSRFExemptMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
 # ==============================================================================
 # DEBUG CONFIGURATION
 # ==============================================================================
@@ -14,7 +28,7 @@ DEBUG = False
 # ==============================================================================
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
-    default='*.onrender.com,gc-api-3yjt.onrender.com,localhost,127.0.0.1',
+    default='gc-api-3yjt.onrender.com,.onrender.com,localhost,127.0.0.1,*',
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 
@@ -59,6 +73,43 @@ CSRF_COOKIE_SECURE = False
 USE_TZ = True
 
 # ==============================================================================
+# SWAGGER UI CONFIGURATION
+# ==============================================================================
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'GreenCart API',
+    'DESCRIPTION': 'API REST pour une plateforme de circuit court connectant producteurs locaux et consommateurs écoresponsables',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': r'/api/',
+    'SCHEMA_PATH_PREFIX_TRIM': True,
+    'SERVE_PERMISSIONS': ['rest_framework.permissions.AllowAny'],
+    'SERVE_AUTHENTICATION': [],
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+        'displayOperationId': True,
+        'filter': True,
+        'requestSnippetsEnabled': True,
+        'tryItOutEnabled': True,
+        'supportedSubmitMethods': ['get', 'post', 'put', 'delete', 'patch', 'head', 'options'],
+        'docExpansion': 'none',
+        'operationsSorter': 'alpha',
+        'tagsSorter': 'alpha',
+    },
+    'SERVERS': [
+        {'url': 'https://gc-api-3yjt.onrender.com/api', 'description': 'Production server'},
+        {'url': 'http://localhost:8000/api', 'description': 'Development server'},
+    ],
+}
+
+# ==============================================================================
 # STATIC FILES
 # ==============================================================================
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# WhiteNoise configuration
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True

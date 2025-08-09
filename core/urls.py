@@ -35,9 +35,13 @@ urlpatterns = [
     path('api/', include('api.urls', namespace='api')),  # API principale
 ]
 
-# Servir les fichiers statiques et média en développement
+# Servir les fichiers statiques et média
+# En production, WhiteNoise gère les static files automatiquement
+# On ajoute les media files pour tous les environnements
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# En développement, aussi les static files
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Django Debug Toolbar (désactivé pour le MVP)
