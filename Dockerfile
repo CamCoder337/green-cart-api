@@ -1,5 +1,5 @@
 # GreenCart API Dockerfile for Render deployment
-FROM python:3.13-slim
+FROM python:3.11-slim
 
 LABEL authors="CamCoder337"
 
@@ -25,16 +25,18 @@ USER app
 WORKDIR /home/app
 
 # Copy requirements files
-COPY --chown=app:app requirements.txt requirements-flexible.txt requirements-minimal.txt ./
+COPY --chown=app:app requirements-python311.txt requirements.txt requirements-flexible.txt requirements-minimal.txt ./
 
-# Install dependencies with multiple fallback strategies
-RUN pip install --user -r requirements.txt || \
+# Install dependencies with multiple fallback strategies (Python 3.11 optimized first)
+RUN pip install --user -r requirements-python311.txt || \
+    (echo "Python 3.11 requirements failed, trying standard..." && \
+     pip install --user -r requirements.txt) || \
     (echo "Standard requirements failed, trying flexible versions..." && \
      pip install --user -r requirements-flexible.txt) || \
     (echo "Flexible requirements failed, trying minimal versions..." && \
      pip install --user -r requirements-minimal.txt) || \
     (echo "All requirements failed, installing core packages individually..." && \
-     pip install --user Django djangorestframework python-decouple psycopg2-binary gunicorn)
+     pip install --user Django djangorestframework python-decouple psycopg2-binary==2.9.7 gunicorn==21.2.0)
 
 # Copy project files
 COPY --chown=app:app . .
